@@ -18,6 +18,7 @@ server.on('request', async(req, res) => {
         // fetch
         const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']})
         const page = await browser.newPage()
+        page.setUserAgent('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.11 (KHTML, like Gecko) Chrome/20.0.1132.47 Safari/536.11')
         await page.goto(search, {timeout: 5000, waitUntil: 'networkidle2'})
 
         // output
