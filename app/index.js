@@ -7,17 +7,16 @@ const server = http.createServer()
 const count_file = 'count.dat'
 
 server.on('request', async(req, res) => {
-    let parse = url.parse(req.url, true)
-    let query = parse.query
-    let target_url = Object.keys(query)[0]
+    let parse = url.parse(req.url)
+    let search = parse.search.replace(/^\?/, '')
 
     // proxy get
-    if(target_url){
+    if(search.match(/^https/)) {
 
         // fetch
         const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']})
         const page = await browser.newPage()
-        await page.goto(target_url, {timeout: 5000, waitUntil: 'networkidle2'})
+        await page.goto(search, {timeout: 5000, waitUntil: 'networkidle2'})
 
         // output
         res.writeHead(200, {'Content-Type': 'text/plain'})
@@ -45,6 +44,13 @@ server.on('request', async(req, res) => {
         // output
         res.writeHead(200, {'Content-Type': 'text/plain'})
         res.write(count)
+        res.end()
+    }
+
+    // no case
+    else {
+        // output
+        res.writeHead(400, {'Content-Type': 'text/plain'})
         res.end()
     }
 
