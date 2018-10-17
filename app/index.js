@@ -8,10 +8,12 @@ const count_file = 'count.dat'
 
 server.on('request', async(req, res) => {
     let parse = url.parse(req.url)
-    let search = parse.search.replace(/^\?/, '')
+    let search = typeof(parse.search) === 'string'
+        ? parse.search.replace(/^\?/, '')
+        : ''
 
     // proxy get
-    if(search.match(/^https/)) {
+    if(search.match(/^https?/)) {
 
         // fetch
         const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']})
