@@ -1,1 +1,1 @@
-docker rm -f url2static-server
+docker rm -f url2static
