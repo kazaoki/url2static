@@ -1,37 +1,51 @@
-
-
 const fs = require('fs')
 const puppeteer = require('puppeteer')
 const http = require('http')
+const url = require('url')
+const server = http.createServer()
 
+const count_file = 'count.dat'
 
+server.on('request', async(req, res) => {
+    let parse = url.parse(req.url, true)
+    let query = parse.query
+    let target_url = Object.keys(query)[0]
 
-http.createServer((req, res) => {
+    // proxy get
+    if(target_url){
 
-    (async() => {
+        // fetch
+        const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']})
+        const page = await browser.newPage()
+        await page.goto(target_url, {timeout: 5000, waitUntil: 'networkidle2'})
 
-        const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-         // const browser = await puppeteer.launch();
-         const page = await browser.newPage();
-        //  await page.goto('https://kazaoki.jp', {timeout: 5000, waitUntil: 'networkidle2'}); //default 1000
-         // await page.goto('http://tipsnote.github.io/vue-test/', {timeout: 5000, waitUntil: 'networkidle2'}); //default 1000
-         await page.goto('https://www.google.co.jp/search?q=歯医者+池袋&start=30', {timeout: 5000, waitUntil: 'networkidle2'}); //default 1000
-     
-         // console.log(await page.text())
-        //  console.log(await page.content())
-
-         res.writeHead(200, {'Content-Type': 'text/plain'})
-        //  res.end('Hello World\n');
+        // output
+        res.writeHead(200, {'Content-Type': 'text/plain'})
         res.write(await page.content())
         res.end()
+        browser.close()
 
-         browser.close()
-     
-     })()
-     
+        // count up
+        let count;
+        try {
+            fs.statSync(count_file);
+            count = fs.readFileSync(count_file)
+        } catch(err) {
+            count = 0
+        }
+        fs.writeFileSync(count_file, ++count)
+    }
 
+    // return count.dat
+    else if(parse.path === '/count.dat'){
 
+        // count load
+        let count = fs.readFileSync(count_file)
+
+        // output
+        res.writeHead(200, {'Content-Type': 'text/plain'})
+        res.write(count)
+        res.end()
+    }
 
 }).listen(8080)
-
-console.log('Server running at http://localhost:8080/')
